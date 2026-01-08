@@ -98,10 +98,7 @@ export class OutletRepository {
     const query = `
       match
       $outlet isa outlet, has outlet-id "${outletId}";
-      $outlet has balance $old_bal;
-      delete
-      has $old_bal of $outlet;
-      insert
+      update
       $outlet has balance ${newBalance};
     `;
 
@@ -112,10 +109,7 @@ export class OutletRepository {
     const query = `
       match
       $outlet isa outlet, has outlet-id "${outletId}";
-      $outlet has margin-percent $old_margin;
-      delete
-      has $old_margin of $outlet;
-      insert
+      update
       $outlet has margin-percent ${newMarginPercent};
     `;
 
@@ -126,30 +120,18 @@ export class OutletRepository {
     const query = `
       match
       $outlet isa outlet, has outlet-id "${outletId}";
-      $outlet has outlet-open $old_open;
-      delete
-      has $old_open of $outlet;
-      insert
+      update
       $outlet has outlet-open ${isOpen};
     `;
 
-    console.log('Toggle query:', query);
-    try {
-      await this.getHelper().executeWriteQuery(query);
-    } catch (error) {
-      console.error('Error in toggleOpen:', error);
-      throw error;
-    }
+    await this.getHelper().executeWriteQuery(query);
   }
 
   async toggleAllOpen(isOpen: boolean): Promise<void> {
     const query = `
       match
       $outlet isa outlet;
-      $outlet has outlet-open $old_open;
-      delete
-      has $old_open of $outlet;
-      insert
+      update
       $outlet has outlet-open ${isOpen};
     `;
 
