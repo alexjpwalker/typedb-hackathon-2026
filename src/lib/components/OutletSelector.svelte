@@ -4,7 +4,9 @@
   import type { Outlet } from '../types';
 
   // Inventory per outlet: outletId -> { donutTypeId -> quantity }
+  // Using a reactive key to force re-renders when inventory changes
   let inventories: Record<string, Record<string, number>> = {};
+  let inventoryKey = 0;
 
   function formatBalance(balance: number | undefined): string {
     return balance !== undefined ? balance.toFixed(2) : '0.00';
@@ -18,8 +20,12 @@
     try {
       const response = await fetch(`http://localhost:3000/api/outlets/${outletId}/inventory`);
       if (response.ok) {
-        inventories[outletId] = await response.json();
-        inventories = inventories; // trigger reactivity
+        const data = await response.json();
+        inventories[outletId] = data;
+        inventories = {...inventories}; // trigger reactivity with new object
+        inventoryKey++; // force re-render
+      } else {
+        console.error(`Failed to fetch inventory for ${outletId}: ${response.status}`);
       }
     } catch (error) {
       console.error(`Error fetching inventory for ${outletId}:`, error);
@@ -48,11 +54,15 @@
   }
 
   onMount(() => {
-    fetchAllInventories();
     // Refresh inventory every 2 seconds
     const interval = setInterval(fetchAllInventories, 2000);
     return () => clearInterval(interval);
   });
+
+  // Re-fetch inventory whenever outlets change (ensures we have outlet IDs)
+  $: if ($outlets.length > 0) {
+    fetchAllInventories();
+  }
 
   async function toggleOutlet(outlet: Outlet, event: MouseEvent) {
     event.stopPropagation(); // Prevent outlet selection
@@ -120,10 +130,12 @@
             <div class="card-body">
               <span class="location">{outlet.location}</span>
               <span class="margin-info">Retail Margin: {formatMargin(outlet.marginPercent)}</span>
+              {#key inventoryKey}
               <div class="inventory-info">
                 <span class="inventory-label">Inventory ({getTotalInventory(outlet.outletId)} total):</span>
                 <span class="inventory-items">{formatInventory(outlet.outletId)}</span>
               </div>
+              {/key}
               <div class="status-controls">
                 <span class="status-indicator" class:open={outlet.isOpen} class:closed={!outlet.isOpen}>
                   {outlet.isOpen ? '🟢 OPEN' : '🔴 CLOSED'}

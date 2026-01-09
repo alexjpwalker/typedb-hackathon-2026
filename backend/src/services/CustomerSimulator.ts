@@ -60,20 +60,13 @@ export class CustomerSimulator {
     }
 
     this.isRunning = true;
-    console.log('Starting customer simulator (1-3 customers/second)...');
+    console.log('Starting customer simulator (1 customer every 2 seconds)...');
 
-    // Spawn customers every second
+    // Spawn customers every 2 seconds (slower rate to allow inventory to build up)
     this.intervalId = setInterval(async () => {
       if (!this.isRunning) return;
-
-      const numCustomers = Math.floor(Math.random() * 3) + 1; // 1-3 customers
-
-      for (let i = 0; i < numCustomers; i++) {
-        // Spawn each customer with a small random delay within the second
-        const delay = Math.random() * 900; // 0-900ms delay
-        setTimeout(() => this.spawnCustomer(), delay);
-      }
-    }, 1000);
+      this.spawnCustomer();
+    }, 2000);
   }
 
   stop(): void {

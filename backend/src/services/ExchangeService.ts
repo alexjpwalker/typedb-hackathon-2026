@@ -7,6 +7,8 @@ import { CustomerSaleRepository } from '../repositories/CustomerSaleRepository.j
 import { MatchingEngine } from '../engine/MatchingEngine.js';
 import { CreateOrderRequest, Order, OrderBook, Transaction, Outlet, DonutType, OutletStats, CustomerSale } from '../models/types.js';
 
+type OrderBookUpdatedCallback = (orderBook: OrderBook) => void;
+
 // Cache for sales statistics (backed by DB)
 interface OutletSalesStats {
   customerSalesRevenue: number;
@@ -32,6 +34,9 @@ export class ExchangeService {
 
   // Cache for inventory (backed by DB)
   private inventoryCache: InventoryMap = new Map();
+
+  // Callbacks for order book updates
+  private orderBookCallbacks: OrderBookUpdatedCallback[] = [];
 
   constructor() {
     this.orderRepo = new OrderRepository();
@@ -162,6 +167,26 @@ export class ExchangeService {
     this.matchingEngine.onError(callback);
   }
 
+  onOrderBookUpdated(callback: OrderBookUpdatedCallback): void {
+    this.orderBookCallbacks.push(callback);
+  }
+
+  private async emitOrderBookUpdated(donutTypeId: string): Promise<void> {
+    if (this.orderBookCallbacks.length === 0) return;
+    try {
+      const orderBook = await this.orderRepo.getOrderBook(donutTypeId, false);
+      for (const callback of this.orderBookCallbacks) {
+        try {
+          callback(orderBook);
+        } catch (error) {
+          console.error('Error in order book callback:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching order book for broadcast:', error);
+    }
+  }
+
   // ==========================================
   // Order Management
   // ==========================================
@@ -184,6 +209,9 @@ export class ExchangeService {
 
     // Attempt to match the order
     await this.matchingEngine.processOrder(order);
+
+    // Broadcast order book update
+    this.emitOrderBookUpdated(request.donutTypeId);
 
     // Return the updated order
     return await this.orderRepo.findById(order.orderId) || order;

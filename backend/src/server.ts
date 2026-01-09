@@ -104,6 +104,11 @@ class DonutExchangeServer {
         this.wsManager?.notifyError(message, source);
       });
 
+      // Connect order book updates to WebSocket
+      this.exchangeService.onOrderBookUpdated((orderBook) => {
+        this.wsManager?.notifyOrderBookUpdated(orderBook);
+      });
+
       // Start donut supplier (factory)
       console.log('Starting donut supplier...');
       await this.donutSupplier.start();

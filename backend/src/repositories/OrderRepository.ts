@@ -198,21 +198,9 @@ export class OrderRepository {
         ? buyOrders
         : buyOrders.filter(o => isMatchable(o.status));
 
-      // Sort: sell orders by price asc (best ask first), then by time asc (oldest first)
-      // Buy orders by price desc (best bid first), then by time asc (oldest first)
-      // This implements price-time priority
-      filteredSellOrders.sort((a, b) => {
-        if (a.pricePerUnit !== b.pricePerUnit) {
-          return a.pricePerUnit - b.pricePerUnit;
-        }
-        return a.createdAt.getTime() - b.createdAt.getTime();
-      });
-      filteredBuyOrders.sort((a, b) => {
-        if (a.pricePerUnit !== b.pricePerUnit) {
-          return b.pricePerUnit - a.pricePerUnit;
-        }
-        return a.createdAt.getTime() - b.createdAt.getTime();
-      });
+      // Sort by time descending (newest first) for display
+      filteredSellOrders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      filteredBuyOrders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
       return { donutTypeId, buyOrders: filteredBuyOrders, sellOrders: filteredSellOrders };
     } catch (error) {

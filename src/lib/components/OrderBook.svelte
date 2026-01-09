@@ -43,6 +43,7 @@
       <div class="asks-section">
         <h3 class="section-title sell">Asks (Sell Orders)</h3>
         <div class="orders-header">
+          <span>Type</span>
           <span>Price</span>
           <span>Quantity</span>
           <span>Time</span>
@@ -50,6 +51,7 @@
         <div class="orders-list">
           {#each $orderBook.sellOrders as order (order.orderId)}
             <div class="order-row sell" class:filled={!isActive(order.status)}>
+              <span class="donut-type-cell">{order.donutTypeId || $orderBook.donutTypeId}</span>
               <span class="price">${formatPrice(order.pricePerUnit)}</span>
               <span class="quantity">{order.quantity}</span>
               <span class="time">{formatDate(order.createdAt)}</span>
@@ -75,6 +77,7 @@
       <div class="bids-section">
         <h3 class="section-title buy">Bids (Buy Orders)</h3>
         <div class="orders-header">
+          <span>Type</span>
           <span>Price</span>
           <span>Quantity</span>
           <span>Time</span>
@@ -82,6 +85,7 @@
         <div class="orders-list">
           {#each $orderBook.buyOrders as order (order.orderId)}
             <div class="order-row buy" class:filled={!isActive(order.status)}>
+              <span class="donut-type-cell">{order.donutTypeId || $orderBook.donutTypeId}</span>
               <span class="price">${formatPrice(order.pricePerUnit)}</span>
               <span class="quantity">{order.quantity}</span>
               <span class="time">{formatDate(order.createdAt)}</span>
@@ -174,7 +178,7 @@
 
   .orders-header {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 0.5rem;
     padding: 0.5rem;
     background: #f3f4f6;
@@ -191,11 +195,16 @@
 
   .order-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 0.5rem;
     padding: 0.5rem;
     border-bottom: 1px solid #e5e7eb;
     font-size: 0.875rem;
+  }
+
+  .donut-type-cell {
+    color: #6b7280;
+    font-size: 0.8rem;
   }
 
   .order-row.sell {

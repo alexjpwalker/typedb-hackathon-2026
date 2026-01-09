@@ -67,9 +67,10 @@ export async function initializeStores() {
 
     websocket.on('order_book_updated', (message) => {
       const book = message.data as OrderBook;
-      selectedDonutType.subscribe((donutType) => {
+      selectedDonutType.subscribe(async (donutType) => {
         if (donutType && book.donutTypeId === donutType.donutTypeId) {
-          orderBook.set(book);
+          // Re-fetch with current showFilledOrders setting instead of using broadcast data
+          await refreshOrderBook(donutType.donutTypeId);
         }
       })();
     });
